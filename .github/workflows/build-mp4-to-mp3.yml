@@ -1,0 +1,31 @@
+name: Build Windows MP4 to MP3
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "mp4-to-mp3/**"
+      - ".github/workflows/build-mp4-to-mp3.yml"
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mp4-to-mp3/requirements.txt
+      - name: Build executable
+        shell: pwsh
+        run: |
+          cd mp4-to-mp3
+          pyinstaller --noconfirm --clean --windowed --onefile --name MP4转MP3 --collect-all imageio_ffmpeg --collect-all PySide6 main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MP4转MP3-Windows
+          path: mp4-to-mp3/dist/MP4转MP3.exe
+          if-no-files-found: error
