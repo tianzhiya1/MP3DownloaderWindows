@@ -1,0 +1,37 @@
+name: Release MP4 to MP3 for Windows
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "mp4-to-mp3/**"
+      - ".github/workflows/release-mp4-to-mp3.yml"
+permissions:
+  contents: write
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mp4-to-mp3/requirements.txt
+      - name: Build executable
+        shell: pwsh
+        run: |
+          cd mp4-to-mp3
+          pyinstaller --noconfirm --clean --windowed --onefile --name MP4转MP3 --collect-all imageio_ffmpeg --collect-all PySide6 main.py
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mp4-to-mp3-v1.0.0
+          name: MP4 转 MP3 Windows v1.0.0
+          body: |
+            独立的本地视频转 MP3 工具。
+            支持批量选择视频文件并转换为 MP3。
+            下载下方 MP4转MP3.exe，解压后运行即可。
+          files: mp4-to-mp3/dist/MP4转MP3.exe
+          fail_on_unmatched_files: true
